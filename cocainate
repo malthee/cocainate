@@ -1,0 +1,97 @@
+#!/bin/sh
+
+usage() {
+    cat <<'EOF'
+Usage: cocainate <duration>
+       cocainate off
+
+Keep a Mac awake with its lid closed for a limited time.
+Duration must include a unit: s (seconds), m (minutes), or h (hours).
+Examples: cocainate 20m, cocainate 900s, cocainate 1h
+Maximum duration: 24 hours.
+EOF
+}
+
+fail() {
+    printf 'cocainate: %s\n' "$1" >&2
+    exit 1
+}
+
+[ "$(/usr/bin/uname -s)" = Darwin ] || fail "macOS is required"
+
+case "${1-}" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    off)
+        [ "$#" -eq 1 ] || fail "off takes no duration"
+        /usr/bin/sudo /usr/bin/pmset -a disablesleep 0 || fail "could not restore sleep"
+        state=$(/usr/bin/pmset -g) || fail "could not verify sleep state"
+        if printf '%s\n' "$state" | /usr/bin/grep -Eq "SleepDisabled[[:space:]]+1$"; then
+            fail "sleep is still disabled"
+        fi
+        printf 'Normal sleep restored.\n'
+        exit 0
+        ;;
+esac
+
+[ "$#" -eq 1 ] || { usage >&2; exit 2; }
+
+case "$1" in
+    *s) amount=${1%s}; factor=1; maximum=86400 ;;
+    *m) amount=${1%m}; factor=60; maximum=1440 ;;
+    *h) amount=${1%h}; factor=3600; maximum=24 ;;
+    *) usage >&2; exit 2 ;;
+esac
+
+case "$amount" in
+    ''|*[!0-9]*) fail "duration must be a positive whole number followed by s, m, or h" ;;
+esac
+
+if ! [ "$amount" -ge 1 ] 2>/dev/null || ! [ "$amount" -le "$maximum" ] 2>/dev/null; then
+    fail "duration must be between 1 second and 24 hours"
+fi
+
+seconds=$(/bin/expr "$amount" \* "$factor") || fail "invalid duration"
+
+# Keep the privileged process alive through the timer so sudo does not need
+# to prompt again while the lid is closed. The duration is passed as data.
+exec /usr/bin/sudo /bin/sh -c '
+    state=$(/usr/bin/pmset -g) || exit 1
+    if printf "%s\n" "$state" | /usr/bin/grep -Eq "SleepDisabled[[:space:]]+1$"; then
+        printf "cocainate: sleep is already disabled by another setting or app\n" >&2
+        exit 1
+    fi
+
+    restore_sleep() {
+        if ! /usr/bin/pmset -a disablesleep 0; then
+            printf "cocainate: could not restore sleep; run cocainate off\n" >&2
+            return
+        fi
+        state=$(/usr/bin/pmset -g) || {
+            printf "cocainate: could not verify sleep state; run cocainate off\n" >&2
+            return
+        }
+        if printf "%s\n" "$state" | /usr/bin/grep -Eq "SleepDisabled[[:space:]]+1$"; then
+            printf "cocainate: sleep is still disabled; run cocainate off\n" >&2
+        else
+            printf "Normal sleep restored.\n"
+        fi
+    }
+
+    trap restore_sleep EXIT
+    trap "exit 129" HUP
+    trap "exit 130" INT
+    trap "exit 143" TERM
+
+    /usr/bin/pmset -a disablesleep 1 || exit 1
+    state=$(/usr/bin/pmset -g) || exit 1
+    if ! printf "%s\n" "$state" | /usr/bin/grep -Eq "SleepDisabled[[:space:]]+1$"; then
+        printf "cocainate: sleep override did not take effect\n" >&2
+        exit 1
+    fi
+
+    printf "Sleep disabled for %s. Keep this Terminal session open.\n" "$2"
+    /bin/sleep "$1"
+' cocainate "$seconds" "$1"
