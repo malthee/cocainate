@@ -1,5 +1,15 @@
 # cocainate
 
+> caffeinate? nah that's too weak. 
+
+Want to keep vibing even when your on the commute?  
+Tired of your mac going to sleep in your bag?  
+`cocainate` forces your Mac to stay working.  
+
+Start up your hotspot, put that Mac in your bag and enjoy while you get to feel the warmth of tokens being burnt while you are travelling.
+
+--- 
+
 Keep a MacBook running with its lid closed for a limited time. `cocainate` uses macOS's `pmset disablesleep` setting and restores normal sleep when the timer ends.
 
 ## Quick install
