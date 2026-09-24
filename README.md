@@ -42,7 +42,7 @@ Durations require `s`, `m`, or `h` and are capped at 24 hours. The command promp
 
 The sleep override is system-wide and can persist if the process is forcibly killed or the Mac restarts before cleanup. In that case, run `cocainate off` and check `pmset -g | grep SleepDisabled`; `0` or no line means normal sleep. The command refuses to start if sleep is already disabled by another app or setting.
 
-Apple does not document this override as a supported lid-closed workflow. Test it for one minute on your Mac model and macOS version, and check the Mac's temperature before putting it in a bag. `cocainate` does not establish or maintain the hotspot connection.
+Apple does not document this override as a supported lid-closed workflow and [recommends good ventilation](https://support.apple.com/en-us/102336) while a Mac is running. Keeping a closed Mac awake, especially in a bag, can cause heat buildup, battery drain, or hardware damage. Test it for one minute on your Mac model and macOS version, and check the Mac's temperature before putting it in a bag. `cocainate` does not establish or maintain the hotspot connection.
 
 ## Why this works
 
@@ -50,4 +50,4 @@ Apple's [`pmset` source](https://github.com/apple-oss-distributions/PowerManagem
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Use it at your own risk. The software is provided **as is**, without warranty. The authors and copyright holders disclaim liability for claims or damage arising from its use, to the extent permitted by applicable law.
