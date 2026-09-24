@@ -6,11 +6,26 @@ if [ "$(/usr/bin/uname -s)" != Darwin ]; then
     exit 1
 fi
 
-project_dir=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
+case "${1-}" in
+    '')
+        project_dir=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
+        source_file=$project_dir/cocainate
+        ;;
+    --remote)
+        source_file=$(/usr/bin/mktemp "${TMPDIR:-/tmp}/cocainate.XXXXXX")
+        trap '/bin/rm -f "$source_file"' EXIT
+        /usr/bin/curl -fsSL https://raw.githubusercontent.com/malthee/cocainate/main/cocainate -o "$source_file"
+        ;;
+    *)
+        printf 'Usage: install.sh [--remote]\n' >&2
+        exit 2
+        ;;
+esac
+
 bin_dir=${HOME:?HOME must be set}/.local/bin
 
 /bin/mkdir -p "$bin_dir"
-/usr/bin/install -m 755 "$project_dir/cocainate" "$bin_dir/cocainate"
+/usr/bin/install -m 755 "$source_file" "$bin_dir/cocainate"
 printf 'Installed cocainate to %s\n' "$bin_dir/cocainate"
 
 case ":${PATH-}:" in

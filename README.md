@@ -4,19 +4,19 @@ Keep a MacBook running with its lid closed for a limited time. `cocainate` uses 
 
 ## Quick install
 
+Copy and run this one command on your Mac:
+
 ```sh
-git clone https://github.com/malthee/cocainate.git
-cd cocainate
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/malthee/cocainate/main/install.sh | sh -s -- --remote
 ```
 
-The installer copies the command to `~/.local/bin`. If that directory is not on your `PATH`, it adds it to `~/.zshrc` or `~/.bash_profile` and asks you to open a new terminal. It does not run `sudo` or change your Mac's sleep setting.
+This executes the installer from the repository's `main` branch. You can [inspect it first](install.sh) or use the manual steps below. The installer copies the command to `~/.local/bin`. If that directory is not on your `PATH`, it adds it to `~/.zshrc` or `~/.bash_profile` and asks you to open a new terminal. It does not run `sudo` or change your Mac's sleep setting.
 
 ## Manual install
 
-From the cloned repository:
-
 ```sh
+git clone https://github.com/malthee/cocainate.git
+cd cocainate
 mkdir -p "$HOME/.local/bin"
 install -m 755 cocainate "$HOME/.local/bin/cocainate"
 ```
